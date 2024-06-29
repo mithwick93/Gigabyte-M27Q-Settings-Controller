@@ -72,7 +72,7 @@ class MonitorControl:
             if self._dev.is_kernel_driver_active(0):
                 self._dev.detach_kernel_driver(0)
                 self._had_driver = True
-        except Exception as e:
+        except usb.USBError:
             pass
 
         # Set config (1 as discovered with Wireshark)
@@ -119,8 +119,9 @@ class MonitorControl:
             b_request=178,
             w_value=0,
             w_index=0,
-            message=
-            bytearray([0x6E, 0x51, 0x81 + len(data), 0x01]) + bytearray(data),
+            message=bytearray(
+                [0x6E, 0x51, 0x81 + len(data), 0x01]
+            ) + bytearray(data),
         )
         data = self.__usb_read(
             b_request=162,
@@ -138,17 +139,21 @@ class MonitorControl:
             message=bytearray([0x6E, 0x51, 0x81 + len(data), 0x03] + data),
         )
 
-    def __get_property(self, property: Property):
+    def __get_property(self, property_name: Property):
         try:
-            return self.__get_osd([property.message_a, property.message_b])
+            return self.__get_osd(
+                [property_name.message_a, property_name.message_b]
+            )
         except Exception as e:
             print(e)
 
-    def __set_property(self, property: Property, value: int):
+    def __set_property(self, property_name: Property, value: int):
         try:
-            self.__set_osd(
-                [property.message_a, property.message_b, property.clamp(value)]
-            )
+            self.__set_osd([
+                property_name.message_a,
+                property_name.message_b,
+                property_name.clamp(value)
+            ])
         except Exception as e:
             print(e)
 
@@ -179,7 +184,11 @@ class MonitorControl:
         self.__set_property(MonitorControl.BRIGHTNESS, brightness)
 
     def transition_brightness(self, to_brightness: int, step: int = 3):
-        self.__transition_property(MonitorControl.BRIGHTNESS, to_brightness, step)
+        self.__transition_property(
+            MonitorControl.BRIGHTNESS,
+            to_brightness,
+            step
+        )
 
     def get_contrast(self):
         return self.__get_property(MonitorControl.CONTRAST)
