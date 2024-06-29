@@ -3,14 +3,52 @@
 # Based on: https://gist.github.com/wadimw/4ac972d07ed1f3b6f22a101375ecac41
 
 
+import typing as t
+from dataclasses import dataclass
+from time import sleep
+
+#  pip install pyusb
 import usb.core
 import usb.util
-from time import sleep
-import typing as t
-import sys
+
+
+@dataclass
+class BasicProperty:
+    minimum: int
+    maximum: int
+    message_a: int
+    message_b: int = 0
+
+    def clamp(self, v: int):
+        return max(self.minimum, min(self.maximum, v))
+
+
+@dataclass
+class EnumProperty:
+    allowed: t.List[int]
+    message_a: int
+    message_b: int = 0
+
+    def clamp(self, v: int):
+        if v not in self.allowed:
+            raise Exception(f"Only allowed values: {self.allowed}")
+        return v
+
+
+Property = t.Union[BasicProperty, EnumProperty]
 
 
 class MonitorControl:
+    BRIGHTNESS = BasicProperty(0, 100, 0x10, 0x00)
+    CONTRAST = BasicProperty(0, 100, 0x12, 0x00)
+    VOLUME = BasicProperty(0, 100, 0x62, 0x00)
+    SHARPNESS = BasicProperty(0, 100, 0x87, 0x00)
+    KVM_STATUS = BasicProperty(0, 1, 0xe0, 0x69)
+
+    # BLUE_LIGHT_REDUCTION = BasicProperty(0, 10, 0xe0, 0x0b)
+    # BLACK_EQUALIZER = BasicProperty(0, 10, 0xe0, 0x02)
+    # OSD_TIMEOUT = EnumProperty([5, 10, 15, 20, 25, 30], 0xe0, 0x30)
+
     def __init__(self):
         self._VID = 0x2109  # (VIA Labs, Inc.)
         self._PID = 0x8883  # USB Billboard Device
@@ -23,33 +61,38 @@ class MonitorControl:
 
     # Find USB device, set config
     def __enter__(self):
+        # Find device
         self._dev = usb.core.find(idVendor=self._VID, idProduct=self._PID)
         if self._dev is None:
             raise IOError(f"Device VID_{self._VID}&PID_{self._PID} not found")
 
+        # Detach kernel driver
         self._had_driver = False
-        if sys.platform != "win32":
+        try:
             if self._dev.is_kernel_driver_active(0):
                 self._dev.detach_kernel_driver(0)
                 self._had_driver = True
+        except usb.USBError:
+            pass
 
+        # Set config (1 as discovered with Wireshark)
         self._dev.set_configuration(1)
-
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        # Reattach kernel driver
         if self._had_driver:
             self._dev.attach_kernel_driver(0)
+        # Release device
+        usb.util.dispose_resources(self._dev)
 
-    def usb_write(self, b_request: int, w_value: int, w_index: int, message: bytes):
-        bm_request_type = 0x40
-        if not self._dev.ctrl_transfer(
-            bm_request_type, b_request, w_value, w_index, message
-        ) == len(message):
-            raise IOError("Transferred message length mismatch")
-        sleep(self._usb_delay)
-
-    def usb_read(self, b_request: int, w_value: int, w_index: int, msg_length: int):
+    def __usb_read(
+            self,
+            b_request: int,
+            w_value: int,
+            w_index: int,
+            msg_length: int
+    ):
         bm_request_type = 0xC0
         data = self._dev.ctrl_transfer(
             bm_request_type, b_request, w_value, w_index, msg_length
@@ -57,70 +100,119 @@ class MonitorControl:
         sleep(self._usb_delay)
         return data
 
-    def get_osd(self, data: t.List[int]):
-        self.usb_write(
+    def __usb_write(
+            self,
+            b_request: int,
+            w_value: int,
+            w_index: int,
+            message: bytes
+    ):
+        bm_request_type = 0x40
+        if not self._dev.ctrl_transfer(
+                bm_request_type, b_request, w_value, w_index, message
+        ) == len(message):
+            raise IOError("Transferred message length mismatch")
+        sleep(self._usb_delay)
+
+    def __get_osd(self, data: t.List[int]):
+        self.__usb_write(
             b_request=178,
             w_value=0,
             w_index=0,
-            message=bytearray([0x6E, 0x51, 0x81 + len(data), 0x01]) + bytearray(data),
+            message=bytearray(
+                [0x6E, 0x51, 0x81 + len(data), 0x01]
+            ) + bytearray(data),
         )
-        data = self.usb_read(b_request=162, w_value=0, w_index=111, msg_length=12)
+        data = self.__usb_read(
+            b_request=162,
+            w_value=0,
+            w_index=111,
+            msg_length=12
+        )
         return data[10]
 
-    def set_osd(self, data: bytearray):
-        self.usb_write(
+    def __set_osd(self, data: bytearray):
+        self.__usb_write(
             b_request=178,
             w_value=0,
             w_index=0,
             message=bytearray([0x6E, 0x51, 0x81 + len(data), 0x03] + data),
         )
 
-    def set_brightness(self, brightness: int):
-        self.set_osd(
-            [
-                0x10,
-                0x00,
-                max(self._min_brightness, min(self._max_brightness, brightness)),
-            ]
-        )
+    def __get_property(self, property_name: Property):
+        try:
+            return self.__get_osd(
+                [property_name.message_a, property_name.message_b]
+            )
+        except Exception as e:
+            print(e)
 
-    def get_brightness(self):
-        return self.get_osd([0x10])
+    def __set_property(self, property_name: Property, value: int):
+        try:
+            self.__set_osd([
+                property_name.message_a,
+                property_name.message_b,
+                property_name.clamp(value)
+            ])
+        except Exception as e:
+            print(e)
 
-    def transition_brightness(self, to_brightness: int, step: int = 3):
-        current_brightness = self.get_brightness()
-        diff = abs(to_brightness - current_brightness)
-        if current_brightness <= to_brightness:
+    def __transition_property(
+            self,
+            property_name: BasicProperty,
+            target: int,
+            step: int = 3
+    ):
+        current = self.__get_property(property_name)
+        diff = abs(target - current)
+        if current <= target:
             step = 1 * step  # increase
         else:
             step = -1 * step  # decrease
         while diff >= abs(step):
-            current_brightness += step
-            self.set_brightness(current_brightness)
+            current += step
+            self.__set_property(property_name, current)
             diff -= abs(step)
         # Set one last time
-        if current_brightness != to_brightness:
-            self.set_brightness(to_brightness)
+        if current != target:
+            self.__set_property(property_name, target)
 
-    def set_volume(self, volume: int):
-        return self.set_osd([0x62, 0x00, volume])
+    def get_brightness(self):
+        return self.__get_property(MonitorControl.BRIGHTNESS)
 
-    def get_volume(self):
-        return self.get_osd([0x62])
+    def set_brightness(self, brightness: int):
+        self.__set_property(MonitorControl.BRIGHTNESS, brightness)
+
+    def transition_brightness(self, to_brightness: int, step: int = 3):
+        self.__transition_property(
+            MonitorControl.BRIGHTNESS,
+            to_brightness,
+            step
+        )
+
+    def get_contrast(self):
+        return self.__get_property(MonitorControl.CONTRAST)
+
+    def set_contrast(self, contrast: int):
+        self.__set_property(MonitorControl.CONTRAST, contrast)
 
     def get_kvm_status(self):
-        return self.get_osd([224, 105])
+        return self.__get_property(MonitorControl.KVM_STATUS)
 
     def set_kvm_status(self, status):
-        self.set_osd([224, 105, status])
+        self.__set_property(MonitorControl.KVM_STATUS, status)
 
     def toggle_kvm(self):
         self.set_kvm_status(1 - self.get_kvm_status())
 
+    def get_sharpness(self):
+        return self.__get_property(MonitorControl.SHARPNESS)
 
-# Test
-if __name__ == "__main__":
-    with MonitorControl() as m:
-        m.set_volume(20)
-        print(m.get_volume())
-        # m.toggle_kvm()
+    def set_sharpness(self, contrast: int):
+        self.__set_property(MonitorControl.SHARPNESS, contrast)
+
+    def get_volume(self):
+        return self.__get_property(MonitorControl.VOLUME)
+
+    def set_volume(self, volume: int):
+        self.__set_property(MonitorControl.VOLUME, volume)
