@@ -1,6 +1,6 @@
 import sys
 
-from nicegui import ui, app
+from nicegui import ui, app, native
 
 from core.m27q import MonitorControl
 
@@ -28,4 +28,9 @@ if __name__ in {"__main__", "__mp_main__"}:
 
         ui.button('Close', on_click=lambda: handle_exit())
 
-        ui.run(reload=False, window_size=(500, 500), native=False)
+        ui.run(
+            reload=False,
+            window_size=(500, 500),
+            native=False,
+            port=native.find_open_port()
+        )
