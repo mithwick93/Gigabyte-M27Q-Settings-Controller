@@ -62,6 +62,7 @@ class MonitorControl:
     # Find USB device, set config
     def __enter__(self):
         # Find device
+        print("Init MonitorControl")
         self._dev = usb.core.find(idVendor=self._VID, idProduct=self._PID)
         if self._dev is None:
             raise IOError(f"Device VID_{self._VID}&PID_{self._PID} not found")
@@ -76,10 +77,11 @@ class MonitorControl:
             pass
 
         # Set config (1 as discovered with Wireshark)
-        self._dev.set_configuration(1)
+        # self._dev.set_configuration(1)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        print("Exit MonitorControl")
         # Reattach kernel driver
         if self._had_driver:
             self._dev.attach_kernel_driver(0)
