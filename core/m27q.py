@@ -41,13 +41,15 @@ Property = t.Union[BasicProperty, EnumProperty]
 class MonitorControl:
     BRIGHTNESS = BasicProperty(0, 100, 0x10, 0x00)
     CONTRAST = BasicProperty(0, 100, 0x12, 0x00)
-    VOLUME = BasicProperty(0, 100, 0x62, 0x00)
-    SHARPNESS = BasicProperty(0, 100, 0x87, 0x00)
-    KVM_STATUS = BasicProperty(0, 1, 0xe0, 0x69)
+    COLOR_VIBRANCE = BasicProperty(0, 20, 0xe0, 0x8)
+    SHARPNESS = BasicProperty(0, 10, 0x87, 0x00)
+    COLOR_TEMPERATURE = EnumProperty([4, 5, 6], 0x14, 0x00)  # 4 - cool, 5 - normal, 6 - warm
 
-    # BLUE_LIGHT_REDUCTION = BasicProperty(0, 10, 0xe0, 0x0b)
-    # BLACK_EQUALIZER = BasicProperty(0, 10, 0xe0, 0x02)
-    # OSD_TIMEOUT = EnumProperty([5, 10, 15, 20, 25, 30], 0xe0, 0x30)
+    VOLUME = BasicProperty(0, 100, 0x62, 0x00)
+
+    BLUE_LIGHT_REDUCTION = BasicProperty(0, 10, 0xe0, 0x0b)
+    BLACK_EQUALIZER = BasicProperty(0, 10, 0xe0, 0x02)
+    OSD_TIMEOUT = EnumProperty([5, 10, 15, 20, 25, 30], 0xe0, 0x30)
 
     def __init__(self):
         self._VID = 0x2109  # (VIA Labs, Inc.)
@@ -58,6 +60,12 @@ class MonitorControl:
         self._max_brightness = 100
         self._min_volume = 0
         self._max_volume = 100
+        self.color_temperature_map = {
+            4: "Cool",
+            5: "Normal",
+            6: "Warm",
+            7: "User Define"
+        }
 
     # Find USB device, set config
     def __enter__(self):
@@ -179,42 +187,49 @@ class MonitorControl:
         if current != target:
             self.__set_property(property_name, target)
 
-    def get_brightness(self):
+    def get_brightness(self) -> int:
         return self.__get_property(MonitorControl.BRIGHTNESS)
 
-    def set_brightness(self, brightness: int):
+    def set_brightness(self, brightness: int) -> None:
         self.__set_property(MonitorControl.BRIGHTNESS, brightness)
 
-    def transition_brightness(self, to_brightness: int, step: int = 3):
+    def transition_brightness(self, to_brightness: int, step: int = 3) -> None:
         self.__transition_property(
             MonitorControl.BRIGHTNESS,
             to_brightness,
             step
         )
 
-    def get_contrast(self):
+    def get_contrast(self) -> int:
         return self.__get_property(MonitorControl.CONTRAST)
 
-    def set_contrast(self, contrast: int):
+    def set_contrast(self, contrast: int) -> None:
         self.__set_property(MonitorControl.CONTRAST, contrast)
 
-    def get_kvm_status(self):
-        return self.__get_property(MonitorControl.KVM_STATUS)
+    def get_vibrance(self) -> int:
+        return self.__get_property(MonitorControl.COLOR_VIBRANCE)
 
-    def set_kvm_status(self, status):
-        self.__set_property(MonitorControl.KVM_STATUS, status)
+    def set_vibrance(self, vibrance: int) -> None:
+        self.__set_property(MonitorControl.COLOR_VIBRANCE, vibrance)
 
-    def toggle_kvm(self):
-        self.set_kvm_status(1 - self.get_kvm_status())
-
-    def get_sharpness(self):
+    def get_sharpness(self) -> int:
         return self.__get_property(MonitorControl.SHARPNESS)
 
-    def set_sharpness(self, contrast: int):
+    def set_sharpness(self, contrast: int) -> None:
         self.__set_property(MonitorControl.SHARPNESS, contrast)
 
-    def get_volume(self):
+    def get_temperature(self) -> str:
+        temperature_value = self.__get_property(MonitorControl.COLOR_TEMPERATURE)
+        return self.color_temperature_map.get(
+            temperature_value,
+            f"{temperature_value} - unknown"
+        )
+
+    def set_temperature(self, contrast: int) -> None:
+        self.__set_property(MonitorControl.COLOR_TEMPERATURE, contrast)
+
+    def get_volume(self) -> int:
         return self.__get_property(MonitorControl.VOLUME)
 
-    def set_volume(self, volume: int):
+    def set_volume(self, volume: int) -> None:
         self.__set_property(MonitorControl.VOLUME, volume)
