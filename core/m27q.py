@@ -2,7 +2,6 @@
 #
 # Based on: https://gist.github.com/wadimw/4ac972d07ed1f3b6f22a101375ecac41
 
-
 import typing as t
 from dataclasses import dataclass
 from time import sleep
@@ -10,6 +9,8 @@ from time import sleep
 #  pip install pyusb
 import usb.core
 import usb.util
+
+from util.logger import get_logger
 
 
 @dataclass
@@ -52,6 +53,7 @@ class MonitorControl:
     OSD_TIMEOUT = EnumProperty([5, 10, 15, 20, 25, 30], 0xe0, 0x30)
 
     def __init__(self):
+        self._logger = get_logger(__name__)
         self._VID = 0x2109  # (VIA Labs, Inc.)
         self._PID = 0x8883  # USB Billboard Device
         self._dev = None
@@ -70,10 +72,13 @@ class MonitorControl:
     # Find USB device, set config
     def __enter__(self):
         # Find device
-        print("Init MonitorControl")
+        self._logger.info("Init MonitorControl")
+
         self._dev = usb.core.find(idVendor=self._VID, idProduct=self._PID)
         if self._dev is None:
-            raise IOError(f"Device VID_{self._VID}&PID_{self._PID} not found")
+            error_message = f"Device VID_{self._VID}&PID_{self._PID} not found"
+            self._logger.error(error_message)
+            raise IOError(error_message)
 
         # Detach kernel driver
         self._had_driver = False
@@ -89,7 +94,8 @@ class MonitorControl:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print("Exit MonitorControl")
+        self._logger.info("Exit MonitorControl")
+
         # Reattach kernel driver
         if self._had_driver:
             self._dev.attach_kernel_driver(0)
@@ -121,7 +127,9 @@ class MonitorControl:
         if not self._dev.ctrl_transfer(
                 bm_request_type, b_request, w_value, w_index, message
         ) == len(message):
-            raise IOError("Transferred message length mismatch")
+            error_message = "Transferred message length mismatch"
+            self._logger.error(error_message)
+            raise IOError(error_message)
         sleep(self._usb_delay)
 
     def __get_osd(self, data: t.List[int]):
@@ -155,7 +163,7 @@ class MonitorControl:
                 [property_name.message_a, property_name.message_b]
             )
         except Exception as e:
-            print(e)
+            self._logger.error(e)
 
     def __set_property(self, property_name: Property, value: int):
         try:
@@ -165,7 +173,7 @@ class MonitorControl:
                 property_name.clamp(value)
             ])
         except Exception as e:
-            print(e)
+            self._logger.error(e)
 
     def __transition_property(
             self,

@@ -1,36 +1,16 @@
 import sys
 
-from nicegui import ui, app, native
-
 from core.m27q import MonitorControl
-
-
-def handle_exit():
-    ui.run_javascript('close();')
-    app.shutdown()
-
+from ui.brightness_control_app import BrightnessControlApp
+from util.logger import get_logger
 
 if __name__ in {"__main__", "__mp_main__"}:
+    main_logger = get_logger(__name__)
+
     if sys.platform != "darwin":
-        raise Exception("This script works only on MacOS.")
+        error_message = "This script works only on MacOS."
+        main_logger.error(error_message)
+        raise Exception(error_message)
 
-    with MonitorControl() as m:
-        slider = ui.slider(
-            min=0,
-            max=100,
-            value=m.get_brightness(),
-            on_change=lambda e: m.set_brightness(e.value)
-        )
-
-        with ui.row():
-            ui.label('Brightness')
-            ui.label().bind_text_from(slider, 'value')
-
-        ui.button('Close', on_click=lambda: handle_exit())
-
-        ui.run(
-            reload=False,
-            window_size=(500, 500),
-            native=False,
-            port=native.find_open_port()
-        )
+    with MonitorControl() as monitor_Control:
+        BrightnessControlApp(monitor_Control, main_logger).run()
