@@ -1,4 +1,11 @@
+altgraph==0.17.4
+macholib==1.16.3
+modulegraph==0.19.6
+packaging==24.1
+py2app==0.28.8
+pyinstaller-hooks-contrib==2024.7
 pyobjc-core==10.3.1
 pyobjc-framework-Cocoa==10.3.1
 pyusb==1.2.1
 rumps==0.4.0
+setuptools==70.2.0
