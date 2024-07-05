@@ -4,7 +4,7 @@
 
 This Python application allows you to control the Gigabyte M27Q settings via USB.
 The app will appear in the macOS menu bar. Click the icon to access and adjust the monitor settings.
-This fork aims to create status bar application to control key monitor settings in macOS
+This fork aims to create a status bar application to control key monitor settings in macOS.
 The following settings are available.
 
 1. Brightness
@@ -35,7 +35,7 @@ The initial implementation was based on [this gist](https://gist.github.com/wadi
     pip install -r requirements.txt
 ```
 
-3. Run application locally
+3. Run the application locally
 
 ```shell
     python main.py
