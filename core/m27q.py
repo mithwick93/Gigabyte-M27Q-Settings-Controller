@@ -42,9 +42,9 @@ Property = t.Union[BasicProperty, EnumProperty]
 class MonitorControl:
     BRIGHTNESS = BasicProperty(0, 100, 0x10, 0x00)
     CONTRAST = BasicProperty(0, 100, 0x12, 0x00)
-    COLOR_VIBRANCE = BasicProperty(0, 20, 0xe0, 0x8)
     SHARPNESS = BasicProperty(0, 10, 0x87, 0x00)
-    COLOR_TEMPERATURE = EnumProperty([4, 5, 6], 0x14, 0x00)  # 4 - cool, 5 - normal, 6 - warm
+    TEMPERATURE = EnumProperty([4, 5, 6], 0x14, 0x00)  # 4 - cool, 5 - normal, 6 - warm
+    VIBRANCE = BasicProperty(0, 20, 0xe0, 0x8)
 
     VOLUME = BasicProperty(0, 100, 0x62, 0x00)
 
@@ -108,12 +108,6 @@ class MonitorControl:
     def set_contrast(self, contrast: int) -> None:
         self.__set_property(MonitorControl.CONTRAST, contrast)
 
-    def get_vibrance(self) -> int:
-        return self.__get_property(MonitorControl.COLOR_VIBRANCE)
-
-    def set_vibrance(self, vibrance: int) -> None:
-        self.__set_property(MonitorControl.COLOR_VIBRANCE, vibrance)
-
     def get_sharpness(self) -> int:
         return self.__get_property(MonitorControl.SHARPNESS)
 
@@ -121,10 +115,16 @@ class MonitorControl:
         self.__set_property(MonitorControl.SHARPNESS, sharpness)
 
     def get_temperature(self) -> int:
-        return self.__get_property(MonitorControl.COLOR_TEMPERATURE)
+        return self.__get_property(MonitorControl.TEMPERATURE)
 
     def set_temperature(self, temperature: int) -> None:
-        self.__set_property(MonitorControl.COLOR_TEMPERATURE, temperature)
+        self.__set_property(MonitorControl.TEMPERATURE, temperature)
+
+    def get_vibrance(self) -> int:
+        return self.__get_property(MonitorControl.VIBRANCE)
+
+    def set_vibrance(self, vibrance: int) -> None:
+        self.__set_property(MonitorControl.VIBRANCE, vibrance)
 
     def get_volume(self) -> int:
         return self.__get_property(MonitorControl.VOLUME)
