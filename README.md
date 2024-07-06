@@ -11,6 +11,7 @@ The following settings are available.
 2. Contrast
 3. Vibrance
 4. Sharpness
+5. Volume
 
 The initial implementation was based on [this gist](https://gist.github.com/wadimw/4ac972d07ed1f3b6f22a101375ecac41).
 
