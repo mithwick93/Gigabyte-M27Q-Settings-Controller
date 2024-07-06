@@ -62,12 +62,6 @@ class MonitorControl:
         self._max_brightness = 100
         self._min_volume = 0
         self._max_volume = 100
-        self.color_temperature_map = {
-            4: "Cool",
-            5: "Normal",
-            6: "Warm",
-            7: "User Define"
-        }
 
     # Find USB device, set config
     def __enter__(self):
@@ -101,6 +95,42 @@ class MonitorControl:
             self._dev.attach_kernel_driver(0)
         # Release device
         usb.util.dispose_resources(self._dev)
+
+    def get_brightness(self) -> int:
+        return self.__get_property(MonitorControl.BRIGHTNESS)
+
+    def set_brightness(self, brightness: int) -> None:
+        self.__set_property(MonitorControl.BRIGHTNESS, brightness)
+
+    def get_contrast(self) -> int:
+        return self.__get_property(MonitorControl.CONTRAST)
+
+    def set_contrast(self, contrast: int) -> None:
+        self.__set_property(MonitorControl.CONTRAST, contrast)
+
+    def get_vibrance(self) -> int:
+        return self.__get_property(MonitorControl.COLOR_VIBRANCE)
+
+    def set_vibrance(self, vibrance: int) -> None:
+        self.__set_property(MonitorControl.COLOR_VIBRANCE, vibrance)
+
+    def get_sharpness(self) -> int:
+        return self.__get_property(MonitorControl.SHARPNESS)
+
+    def set_sharpness(self, sharpness: int) -> None:
+        self.__set_property(MonitorControl.SHARPNESS, sharpness)
+
+    def get_temperature(self) -> int:
+        return self.__get_property(MonitorControl.COLOR_TEMPERATURE)
+
+    def set_temperature(self, temperature: int) -> None:
+        self.__set_property(MonitorControl.COLOR_TEMPERATURE, temperature)
+
+    def get_volume(self) -> int:
+        return self.__get_property(MonitorControl.VOLUME)
+
+    def set_volume(self, volume: int) -> None:
+        self.__set_property(MonitorControl.VOLUME, volume)
 
     def __usb_read(
             self,
@@ -174,70 +204,3 @@ class MonitorControl:
             ])
         except Exception as e:
             self._logger.error(e)
-
-    def __transition_property(
-            self,
-            property_name: BasicProperty,
-            target: int,
-            step: int = 3
-    ):
-        current = self.__get_property(property_name)
-        diff = abs(target - current)
-        if current <= target:
-            step = 1 * step  # increase
-        else:
-            step = -1 * step  # decrease
-        while diff >= abs(step):
-            current += step
-            self.__set_property(property_name, current)
-            diff -= abs(step)
-        # Set one last time
-        if current != target:
-            self.__set_property(property_name, target)
-
-    def get_brightness(self) -> int:
-        return self.__get_property(MonitorControl.BRIGHTNESS)
-
-    def set_brightness(self, brightness: int) -> None:
-        self.__set_property(MonitorControl.BRIGHTNESS, brightness)
-
-    def transition_brightness(self, to_brightness: int, step: int = 3) -> None:
-        self.__transition_property(
-            MonitorControl.BRIGHTNESS,
-            to_brightness,
-            step
-        )
-
-    def get_contrast(self) -> int:
-        return self.__get_property(MonitorControl.CONTRAST)
-
-    def set_contrast(self, contrast: int) -> None:
-        self.__set_property(MonitorControl.CONTRAST, contrast)
-
-    def get_vibrance(self) -> int:
-        return self.__get_property(MonitorControl.COLOR_VIBRANCE)
-
-    def set_vibrance(self, vibrance: int) -> None:
-        self.__set_property(MonitorControl.COLOR_VIBRANCE, vibrance)
-
-    def get_sharpness(self) -> int:
-        return self.__get_property(MonitorControl.SHARPNESS)
-
-    def set_sharpness(self, contrast: int) -> None:
-        self.__set_property(MonitorControl.SHARPNESS, contrast)
-
-    def get_temperature(self) -> str:
-        temperature_value = self.__get_property(MonitorControl.COLOR_TEMPERATURE)
-        return self.color_temperature_map.get(
-            temperature_value,
-            f"{temperature_value} - unknown"
-        )
-
-    def set_temperature(self, contrast: int) -> None:
-        self.__set_property(MonitorControl.COLOR_TEMPERATURE, contrast)
-
-    def get_volume(self) -> int:
-        return self.__get_property(MonitorControl.VOLUME)
-
-    def set_volume(self, volume: int) -> None:
-        self.__set_property(MonitorControl.VOLUME, volume)

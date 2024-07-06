@@ -1,95 +1,52 @@
+import typing as t
 from logging import Logger
 
 import rumps
 
-from core.m27q import MonitorControl
+from core.m27q import MonitorControl, Property
 
 
 class BrightnessControlApp(rumps.App):
     def __init__(self, monitor_control: MonitorControl, logger: Logger):
+        super(BrightnessControlApp, self).__init__(name="Gigabyte M27Q Settings Controller", icon="resources/icon.png")
         self._monitor_control = monitor_control
         self._logger = logger
-        super(BrightnessControlApp, self).__init__(name="Gigabyte M27Q SC", icon="resources/icon.png")
 
-        # brightness
-        brightness_value = self._monitor_control.get_brightness()
-        self.brightness_menu_item = rumps.MenuItem(title=f"Brightness: {brightness_value}")
-        self.brightness_slider = rumps.SliderMenuItem(
-            value=brightness_value,
-            min_value=MonitorControl.BRIGHTNESS.minimum,
-            max_value=MonitorControl.BRIGHTNESS.maximum,
-            callback=self.adjust_brightness,
-            dimensions=(200, 30)
+        self._create__slider_menu_item('brightness', MonitorControl.BRIGHTNESS, self.adjust_brightness)
+        self._create__slider_menu_item('contrast', MonitorControl.CONTRAST, self.adjust_contrast)
+        self._create__slider_menu_item('vibrance', MonitorControl.COLOR_VIBRANCE, self.adjust_vibrance)
+        self._create__slider_menu_item('sharpness', MonitorControl.SHARPNESS, self.adjust_sharpness)
+
+    def adjust_brightness(self, sender: rumps.SliderMenuItem) -> None:
+        self._adjust_property('brightness', sender)
+
+    def adjust_contrast(self, sender: rumps.SliderMenuItem) -> None:
+        self._adjust_property('contrast', sender)
+
+    def adjust_vibrance(self, sender: rumps.SliderMenuItem) -> None:
+        self._adjust_property('vibrance', sender)
+
+    def adjust_sharpness(self, sender: rumps.SliderMenuItem) -> None:
+        self._adjust_property('sharpness', sender)
+
+    def _create__slider_menu_item(self, name: str, property_name: Property, callback: t.Callable) -> None:
+        value = getattr(self._monitor_control, f'get_{name.lower()}')()
+        menu_item = rumps.MenuItem(title=f"{name.capitalize()}: {value}")
+        slider = rumps.SliderMenuItem(
+            value=value,
+            min_value=property_name.minimum,
+            max_value=property_name.maximum,
+            callback=callback,
+            dimensions=(200, 25)
         )
+        self.menu.add(menu_item)
+        self.menu.add(slider)
+        self.menu.add(rumps.separator)
+        setattr(self, f'{name.lower()}_menu_item', menu_item)
+        setattr(self, f'{name.lower()}_slider', slider)
 
-        # contrast
-        contrast_value = self._monitor_control.get_contrast()
-        self.contrast_menu_item = rumps.MenuItem(title=f"Contrast: {contrast_value}")
-        self.contrast_slider = rumps.SliderMenuItem(
-            value=contrast_value,
-            min_value=MonitorControl.CONTRAST.minimum,
-            max_value=MonitorControl.CONTRAST.maximum,
-            callback=self.adjust_contrast,
-            dimensions=(200, 30)
-        )
-
-        # vibrance
-        vibrance_value = self._monitor_control.get_vibrance()
-        self.vibrance_menu_item = rumps.MenuItem(title=f"Vibrance: {vibrance_value}")
-        self.vibrance_slider = rumps.SliderMenuItem(
-            value=vibrance_value,
-            min_value=MonitorControl.COLOR_VIBRANCE.minimum,
-            max_value=MonitorControl.COLOR_VIBRANCE.maximum,
-            callback=self.adjust_vibrance,
-            dimensions=(200, 30)
-        )
-
-        # sharpness
-        sharpness_value = self._monitor_control.get_sharpness()
-        self.sharpness_menu_item = rumps.MenuItem(title=f"Sharpness: {sharpness_value}")
-        self.sharpness_slider = rumps.SliderMenuItem(
-            value=sharpness_value,
-            min_value=MonitorControl.SHARPNESS.minimum,
-            max_value=MonitorControl.SHARPNESS.maximum,
-            callback=self.adjust_sharpness,
-            dimensions=(200, 30)
-        )
-
-        self.menu = [
-            self.brightness_menu_item,
-            self.brightness_slider,
-            rumps.separator,
-            self.contrast_menu_item,
-            self.contrast_slider,
-            rumps.separator,
-            self.vibrance_menu_item,
-            self.vibrance_slider,
-            rumps.separator,
-            self.sharpness_menu_item,
-            self.sharpness_slider,
-            rumps.separator,
-        ]
-
-    def adjust_brightness(self, sender):
-        brightness_value = int(sender.value)
-        self._logger.debug("Set brightness to: " + str(brightness_value))
-        self.brightness_menu_item.title = f"Brightness: {brightness_value}"
-        self._monitor_control.set_brightness(brightness_value)
-
-    def adjust_contrast(self, sender):
-        contrast_value = int(sender.value)
-        self._logger.debug("Set contrast to: " + str(contrast_value))
-        self.contrast_menu_item.title = f"Contrast: {contrast_value}"
-        self._monitor_control.set_contrast(contrast_value)
-
-    def adjust_vibrance(self, sender):
-        vibrance_value = int(sender.value)
-        self._logger.debug("Set vibrance to: " + str(vibrance_value))
-        self.vibrance_menu_item.title = f"Vibrance: {vibrance_value}"
-        self._monitor_control.set_vibrance(vibrance_value)
-
-    def adjust_sharpness(self, sender):
-        sharpness_value = int(sender.value)
-        self._logger.debug("Set sharpness to: " + str(sharpness_value))
-        self.sharpness_menu_item.title = f"Sharpness: {sharpness_value}"
-        self._monitor_control.set_sharpness(sharpness_value)
+    def _adjust_property(self, name: str, sender: rumps.SliderMenuItem) -> None:
+        value = int(sender.value)
+        self._logger.debug(f"Set {name.capitalize()} to: {value}")
+        getattr(self, f'{name.lower()}_menu_item').title = f"{name.capitalize()}: {value}"
+        getattr(self._monitor_control, f'set_{name.lower()}')(value)
