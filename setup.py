@@ -16,8 +16,8 @@ OPTIONS = {
     'iconfile': 'resources/icon.png',
     'plist': {
         'CFBundleName': 'Gigabyte M27Q Settings Controller',
-        'CFBundleShortVersionString': '0.1.0',
-        'CFBundleVersion': '0.1.0',
+        'CFBundleShortVersionString': '1.1.0',
+        'CFBundleVersion': '1.1.0',
         'CFBundleIdentifier': 'com.mithwick93.gigabyte.m27q.settings.controller',
         'CFBundleIconFile': 'resources/icon',
         'LSUIElement': '1',
