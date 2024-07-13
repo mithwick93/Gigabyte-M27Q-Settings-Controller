@@ -42,22 +42,22 @@ The core implementation was based on [this gist](https://gist.github.com/wadimw/
 
 1. Clone the repository:
 
-```shell
-    git clone https://github.com/mithwick93/Gigabyte-M27Q-Settings-Controller.git
-    cd Gigabyte-M27Q-Settings-Controller
-```
+    ```shell
+        git clone https://github.com/mithwick93/Gigabyte-M27Q-Settings-Controller.git
+        cd Gigabyte-M27Q-Settings-Controller
+    ```
 
 2. Install the dependencies:
 
-```shell
-    pip install -r requirements.txt
-```
+    ```shell
+        pip install -r requirements.txt
+    ```
 
 3. Run the application locally
 
-```shell
-    python main.py
-```
+    ```shell
+        python main.py
+    ```
 
 ### Build the macOS app:
 
