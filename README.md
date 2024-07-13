@@ -2,7 +2,7 @@
 
 ![sample](resources/sample.png)
 
-This Python application allows you to control the Gigabyte M27Q settings via USB.
+This application allows you to control the Gigabyte M27Q settings via USB.
 The app will appear in the macOS menu bar. Click the icon to access and adjust the monitor settings.
 This fork aims to create a status bar application to control key monitor settings in macOS.
 The following settings are available.
@@ -13,34 +13,51 @@ The following settings are available.
 4. Sharpness
 5. Volume
 
-The initial implementation was based on [this gist](https://gist.github.com/wadimw/4ac972d07ed1f3b6f22a101375ecac41).
+The core implementation was based on [this gist](https://gist.github.com/wadimw/4ac972d07ed1f3b6f22a101375ecac41).
 
-## Requirements
+## Installation Instructions
+
+1. Install [libusb](https://libusb.info/)
+    1. Install using homebrew
+        ```shell 
+        brew install libusb
+        ```
+    2. Create a symbolic link in your home directory
+        ```shell
+        ln -s /opt/homebrew/lib ~/lib
+        ```
+2. Download the DMG file from [releases](https://github.com/mithwick93/Gigabyte-M27Q-Settings-Controller/releases) and
+   open it.
+3. Drag the `Gigabyte M27Q Settings Controller.app` to the Applications folder.
+
+## Development
+
+### Requirements
 
 1. Git
 2. Python 3 and pip
 3. create-dmg (optional, required only for dmg creation)
 
-## Installation
+### Setup
 
 1. Clone the repository:
 
-```shell
-    git clone https://github.com/mithwick93/Gigabyte-M27Q-Settings-Controller.git
-    cd Gigabyte-M27Q-Settings-Controller
-```
+    ```shell
+        git clone https://github.com/mithwick93/Gigabyte-M27Q-Settings-Controller.git
+        cd Gigabyte-M27Q-Settings-Controller
+    ```
 
 2. Install the dependencies:
 
-```shell
-    pip install -r requirements.txt
-```
+    ```shell
+        pip install -r requirements.txt
+    ```
 
 3. Run the application locally
 
-```shell
-    python main.py
-```
+    ```shell
+        python main.py
+    ```
 
 ### Build the macOS app:
 
