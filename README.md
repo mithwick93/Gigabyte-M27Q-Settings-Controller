@@ -1,19 +1,22 @@
-# Gigabyte M27Q Settings Controller
+# Gigabyte M27Q Settings Controller for macOS
 
 ![sample](resources/sample.png)
 
-This application allows you to control the Gigabyte M27Q settings via USB.
-The app will appear in the macOS menu bar. Click the icon to access and adjust the monitor settings.
-This fork aims to create a status bar application to control key monitor settings in macOS.
-The following settings are available.
+## Overview
 
-1. Brightness
-2. Contrast
-3. Vibrance
-4. Sharpness
-5. Volume
-
+The Gigabyte M27Q Settings Controller for macOS is an application that allows you to control the Gigabyte M27Q monitor
+settings via USB.
+The app appears in the macOS menu bar, providing easy access to adjust monitor settings.
+This project aims to create a status bar application to control key monitor settings on macOS.
 The core implementation was based on [this gist](https://gist.github.com/wadimw/4ac972d07ed1f3b6f22a101375ecac41).
+
+## Features
+
+- **Brightness Control**: Adjust the brightness of your Gigabyte M27Q monitor.
+- **Contrast Adjustment**: Modify the contrast settings.
+- **Vibrance**: Control the vibrance to enhance colors.
+- **Sharpness**: Adjust the sharpness for clearer images.
+- **Volume Control**: Manage the volume directly from the menu bar.
 
 ## Installation Instructions
 
@@ -29,6 +32,8 @@ The core implementation was based on [this gist](https://gist.github.com/wadimw/
 2. Download the DMG file from [releases](https://github.com/mithwick93/Gigabyte-M27Q-Settings-Controller/releases) and
    open it.
 3. Drag the `Gigabyte M27Q Settings Controller.app` to the Applications folder.
+4. Run the application from Launchpad. In the first run, You might have to allow the application in Settings > Privacy &
+   Security > Security section
 
 ## Development
 
