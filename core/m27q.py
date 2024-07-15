@@ -50,7 +50,6 @@ class MonitorControl:
 
     BLUE_LIGHT_REDUCTION = BasicProperty(0, 10, 0xe0, 0x0b)
     BLACK_EQUALIZER = BasicProperty(0, 10, 0xe0, 0x02)
-    OSD_TIMEOUT = EnumProperty([5, 10, 15, 20, 25, 30], 0xe0, 0x30)
 
     def __init__(self):
         self._logger = get_logger(__name__)
@@ -95,6 +94,18 @@ class MonitorControl:
             self._dev.attach_kernel_driver(0)
         # Release device
         usb.util.dispose_resources(self._dev)
+
+    def get_black_equalizer(self) -> int:
+        return self.__get_property(MonitorControl.BLACK_EQUALIZER)
+
+    def set_black_equalizer(self, black_equalizer: int) -> None:
+        self.__set_property(MonitorControl.BLACK_EQUALIZER, black_equalizer)
+
+    def get_blue_light_reduction(self) -> int:
+        return self.__get_property(MonitorControl.BLUE_LIGHT_REDUCTION)
+
+    def set_blue_light_reduction(self, blue_light_reduction: int) -> None:
+        self.__set_property(MonitorControl.BLUE_LIGHT_REDUCTION, blue_light_reduction)
 
     def get_brightness(self) -> int:
         return self.__get_property(MonitorControl.BRIGHTNESS)
