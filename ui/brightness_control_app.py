@@ -7,12 +7,24 @@ import rumps
 from core.m27q import MonitorControl
 
 
+def get_capitalized_setting(setting: str):
+    return setting.replace('_', ' ').capitalize()
+
+
 class BrightnessControlApp(rumps.App):
     def __init__(self, monitor_control: MonitorControl, logger: Logger):
         super(BrightnessControlApp, self).__init__(name="Gigabyte M27Q Settings Controller", icon="resources/icon.png")
         self._monitor_control = monitor_control
         self._logger = logger
-        self._settings = ['brightness', 'contrast', 'vibrance', 'sharpness', 'volume']
+        self._settings = [
+            'brightness',
+            'contrast',
+            'vibrance',
+            'sharpness',
+            'black_equalizer',
+            'blue_light_reduction',
+            'volume'
+        ]
 
         self._setting_data = {}
         self._auto_setting_refresh = False
@@ -36,7 +48,8 @@ class BrightnessControlApp(rumps.App):
     def _create_slider_menu_item(self, setting: str) -> None:
         property_name = getattr(MonitorControl, setting.upper())
         value = getattr(self._monitor_control, f'get_{setting}')()
-        menu_item = rumps.MenuItem(title=f"{setting.capitalize()}: {value}")
+        capitalized_setting_name = get_capitalized_setting(setting)
+        menu_item = rumps.MenuItem(title=f"{capitalized_setting_name}: {value}")
         slider = rumps.SliderMenuItem(
             value=value,
             min_value=property_name.minimum,
@@ -53,8 +66,9 @@ class BrightnessControlApp(rumps.App):
 
     def _adjust_slider_property(self, setting: str, sender: rumps.SliderMenuItem) -> None:
         value = int(sender.value)
-        self._logger.debug(f"Set {setting.capitalize()} to: {value}")
-        getattr(self, f'_{setting}_menu_item').title = f"{setting.capitalize()}: {value}"
+        capitalized_setting_name = get_capitalized_setting(setting)
+        self._logger.debug(f"Set {capitalized_setting_name} to: {value}")
+        getattr(self, f'_{setting}_menu_item').title = f"{capitalized_setting_name}: {value}"
         getattr(self._monitor_control, f'set_{setting}')(value)
 
     def _toggle_auto_refresh(self, _):
@@ -87,8 +101,9 @@ class BrightnessControlApp(rumps.App):
         if value == slider.value:
             return
 
-        self._logger.debug(f"Updating {setting.capitalize()} to: {value}")
-        menu_item.title = f"{setting.capitalize()}: {value}"
+        capitalized_setting_name = get_capitalized_setting(setting)
+        self._logger.debug(f"Updating {capitalized_setting_name} to: {value}")
+        menu_item.title = f"{capitalized_setting_name}: {value}"
         slider.value = value
 
     def _get_auto_refresh_toggle_menu_item_title(self):
