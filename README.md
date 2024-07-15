@@ -12,11 +12,13 @@ The core implementation was based on [this gist](https://gist.github.com/wadimw/
 
 ## Features
 
-- **Brightness Control**: Adjust the brightness of your Gigabyte M27Q monitor.
-- **Contrast Adjustment**: Modify the contrast settings.
-- **Vibrance**: Control the vibrance to enhance colors.
-- **Sharpness**: Adjust the sharpness for clearer images.
-- **Volume Control**: Manage the volume directly from the menu bar.
+- Brightness Control
+- Contrast Adjustment
+- Vibrance
+- Sharpness
+- Black Equalizer
+- Blue Light Reduction
+- Volume Control
 
 ## Installation Instructions
 
