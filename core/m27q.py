@@ -10,6 +10,7 @@ from time import sleep
 import usb.core
 import usb.util
 
+from util.alert import show_error_message
 from util.logger import get_logger
 
 
@@ -39,6 +40,15 @@ class EnumProperty:
 Property = t.Union[BasicProperty, EnumProperty]
 
 
+def display_alert(e: Exception):
+    show_error_message(
+        "Error",
+        repr(e) + ".\nTry restarting the app",
+        "Dismiss",
+        "warning"
+    )
+
+
 class MonitorControl:
     BRIGHTNESS = BasicProperty(0, 100, 0x10, 0x00)
     CONTRAST = BasicProperty(0, 100, 0x12, 0x00)
@@ -61,6 +71,8 @@ class MonitorControl:
         self._max_brightness = 100
         self._min_volume = 0
         self._max_volume = 100
+        self._bm_request_type_read = 0xC0
+        self._bm_request_type_write = 0x40
 
     # Find USB device, set config
     def __enter__(self):
@@ -69,7 +81,7 @@ class MonitorControl:
 
         self._dev = usb.core.find(idVendor=self._VID, idProduct=self._PID)
         if self._dev is None:
-            error_message = f"Device VID_{self._VID}&PID_{self._PID} not found"
+            error_message = f"Device VID_{self._VID} & PID_{self._PID} not found"
             self._logger.error(error_message)
             raise IOError(error_message)
 
@@ -150,9 +162,8 @@ class MonitorControl:
             w_index: int,
             msg_length: int
     ):
-        bm_request_type = 0xC0
         data = self._dev.ctrl_transfer(
-            bm_request_type, b_request, w_value, w_index, msg_length
+            self._bm_request_type_read, b_request, w_value, w_index, msg_length
         )
         sleep(self._usb_delay)
         return data
@@ -164,9 +175,8 @@ class MonitorControl:
             w_index: int,
             message: bytes
     ):
-        bm_request_type = 0x40
         if not self._dev.ctrl_transfer(
-                bm_request_type, b_request, w_value, w_index, message
+                self._bm_request_type_write, b_request, w_value, w_index, message
         ) == len(message):
             error_message = "Transferred message length mismatch"
             self._logger.error(error_message)
@@ -204,6 +214,7 @@ class MonitorControl:
                 [property_name.message_a, property_name.message_b]
             )
         except Exception as e:
+            display_alert(e)
             self._logger.error(e)
 
     def __set_property(self, property_name: Property, value: int):
@@ -214,4 +225,5 @@ class MonitorControl:
                 property_name.clamp(value)
             ])
         except Exception as e:
+            display_alert(e)
             self._logger.error(e)
