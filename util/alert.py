@@ -7,7 +7,7 @@ ALERT_TYPES = {
 }
 
 
-def show_error_message(
+def show_alert(
         title: str,
         message: str,
         button_text: str = "OK",

@@ -1,3 +1,5 @@
+import os
+import sys
 import threading
 import time
 from logging import Logger
@@ -9,6 +11,11 @@ from core.m27q import MonitorControl
 
 def get_capitalized_setting(setting: str):
     return setting.replace('_', ' ').capitalize()
+
+
+def restart_app(_: rumps.SliderMenuItem):
+    executable = sys.executable
+    os.execl(executable, executable, *sys.argv)
 
 
 class BrightnessControlApp(rumps.App):
@@ -39,6 +46,13 @@ class BrightnessControlApp(rumps.App):
         )
         self._auto_refresh_toggle_menu_item = auto_refresh_toggle_menu_item
         self.menu.add(auto_refresh_toggle_menu_item)
+
+        restart_app__menu_item = rumps.MenuItem(
+            title="Restart",
+            callback=restart_app
+        )
+        self._restart_app__menu_item = restart_app__menu_item
+        self.menu.add(restart_app__menu_item)
 
         self._polling_thread = threading.Thread(target=self._poll_monitor_settings, daemon=True)
         self._polling_thread.start()

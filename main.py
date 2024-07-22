@@ -2,7 +2,7 @@ import sys
 
 from core.m27q import MonitorControl
 from ui.brightness_control_app import BrightnessControlApp
-from util.alert import show_error_message
+from util.alert import show_alert
 from util.logger import get_logger
 
 if __name__ in {"__main__", "__mp_main__"}:
@@ -17,6 +17,5 @@ if __name__ in {"__main__", "__mp_main__"}:
         with MonitorControl() as monitor_Control:
             BrightnessControlApp(monitor_Control, main_logger).run()
     except Exception as e:
-        show_error_message("Critical Error", repr(e), "Exit", "critical")
-
+        show_alert("Critical Error", repr(e), "Exit", "critical")
         raise e

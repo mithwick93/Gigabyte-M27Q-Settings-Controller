@@ -10,7 +10,7 @@ from time import sleep
 import usb.core
 import usb.util
 
-from util.alert import show_error_message
+from util.alert import show_alert
 from util.logger import get_logger
 
 
@@ -41,7 +41,7 @@ Property = t.Union[BasicProperty, EnumProperty]
 
 
 def display_alert(e: Exception):
-    show_error_message(
+    show_alert(
         "Error",
         repr(e) + ".\nTry restarting the app",
         "Dismiss",
